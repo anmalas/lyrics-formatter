@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한글 글자 단위 분리기</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+  label { display: block; font-weight: bold; margin: 16px 0 6px; }
+  textarea { width: 100%; box-sizing: border-box; padding: 8px; font-family: monospace; font-size: 14px; min-height: 120px; }
+  #output { white-space: pre-wrap; word-break: break-all; border: 1px solid #ccc; padding: 12px; margin-top: 8px; min-height: 60px; font-family: monospace; }
+  .error { color: #c00; }
+</style>
+</head>
+<body>
+  <h1>한글 글자 단위 분리기</h1>
+
+  <label for="text">텍스트 입력</label>
+  <textarea id="text"></textarea>
+
+  <label>변환 결과</label>
+  <div id="output"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const HANGUL = /[가-힣]/;
+
+  function run() {
+    const out = $('output');
+    const text = $('text').value;
+
+    out.textContent = text.replace(/([가-힣])/g, '$1 ');
+  }
+
+  $('text').addEventListener('input', run);
+  run();
+</script>
+</body>
+</html>
