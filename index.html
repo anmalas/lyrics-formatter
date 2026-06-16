@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>한글 글자 단위 분리기</title>
+<title>CJK 글자 단위 분리기</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%234263eb'/%3E%3Crect x='8' y='16' width='22' height='32' rx='4' fill='none' stroke='white' stroke-width='3'/%3E%3Crect x='34' y='16' width='22' height='32' rx='4' fill='none' stroke='white' stroke-width='3' stroke-dasharray='4 3'/%3E%3Ctext x='19' y='40' font-size='18' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3E글%3C/text%3E%3C/svg%3E">
 <style>
   body { font-family: -apple-system, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
@@ -17,10 +17,10 @@
 </style>
 </head>
 <body>
-  <h1>한글 글자 단위 분리기</h1>
+  <h1>CJK 글자 단위 분리기</h1>
 
-  <label for="text">텍스트 입력</label>
-  <textarea id="text"></textarea>
+  <label for="text">입력 텍스트 (한국어 / 중국어 / 일본어)</label>
+  <textarea id="text">안녕하세요 你好 こんにちは</textarea>
 
   <div class="result-header">
     <label>결과</label>
@@ -30,14 +30,33 @@
 
 <script>
   const $ = id => document.getElementById(id);
-  const HANGUL = /[가-힣]/;
+
+  // CJK 글자 범위:
+  //   한글 음절          가-힣
+  //   한글 자모          ㄱ-ㅎㅏ-ㅣ
+  //   히라가나           \u3040-\u309F
+  //   가타카나           \u30A0-\u30FF
+  //   CJK 한자 (간체/번체 공통)  \u4E00-\u9FFF
+  //   CJK 확장 A         \u3400-\u4DBF
+  //   호환 한자          \uF900-\uFAFF
+  const CJK_CLASS = '가-힣ㄱ-ㅎㅏ-ㅣ\\u3040-\\u309F\\u30A0-\\u30FF\\u4E00-\\u9FFF\\u3400-\\u4DBF\\uF900-\\uFAFF';
+  const SPLIT_RE = new RegExp('([' + CJK_CLASS + '])', 'g');
+  const HAS_CJK = new RegExp('[' + CJK_CLASS + ']');
+
   let resultText = '';
 
   function run() {
     const out = $('output'), btn = $('copyBtn');
     const text = $('text').value;
 
-    resultText = text.replace(/([가-힣])/g, '$1 ');
+    if (text && !HAS_CJK.test(text)) {
+      out.innerHTML = '<span class="error">한국어·중국어·일본어 글자가 포함된 텍스트를 입력하세요.</span>';
+      resultText = '';
+      btn.disabled = true;
+      return;
+    }
+
+    resultText = text.replace(SPLIT_RE, '$1 ');
     out.textContent = resultText;
     btn.disabled = resultText.length === 0;
   }
@@ -47,7 +66,6 @@
     try {
       await navigator.clipboard.writeText(resultText);
     } catch {
-      // 클립보드 API가 막힌 환경 대비 폴백
       const ta = document.createElement('textarea');
       ta.value = resultText;
       document.body.appendChild(ta);
